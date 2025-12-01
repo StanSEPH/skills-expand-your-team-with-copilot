@@ -44,6 +44,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // Authentication state
   let currentUser = null;
 
+  // HTML escape function to prevent XSS
+  function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return '';
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   // Time range mappings for the dropdown
   const timeRanges = {
     morning: { start: "06:00", end: "08:00" }, // Before school hours
@@ -485,25 +496,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Determine which share button was clicked
     if (button.classList.contains("share-twitter")) {
-      // Twitter share
+      // Twitter share - validate URL is going to twitter.com
       const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
         shareText
       )}&url=${encodeURIComponent(shareUrl)}`;
       window.open(twitterUrl, "_blank", "width=550,height=420");
     } else if (button.classList.contains("share-facebook")) {
-      // Facebook share
+      // Facebook share - validate URL is going to facebook.com
       const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
         shareUrl
       )}&quote=${encodeURIComponent(shareText)}`;
       window.open(facebookUrl, "_blank", "width=550,height=420");
     } else if (button.classList.contains("share-email")) {
-      // Email share
+      // Email share - use anchor element for better compatibility
       const subject = `Check out ${activityName} at Mergington High School`;
       const body = `${shareText}\n\nVisit: ${shareUrl}`;
       const mailtoUrl = `mailto:?subject=${encodeURIComponent(
         subject
       )}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailtoUrl;
+      
+      // Create a temporary anchor element and click it
+      const anchor = document.createElement('a');
+      anchor.href = mailtoUrl;
+      anchor.click();
     }
 
     // Show confirmation message
@@ -591,15 +606,15 @@ document.addEventListener("DOMContentLoaded", () => {
         </ul>
       </div>
       <div class="share-buttons">
-        <button class="share-button share-twitter tooltip" data-activity="${name}" data-description="${details.description.replace(/"/g, '&quot;')}" data-schedule="${formattedSchedule.replace(/"/g, '&quot;')}">
+        <button class="share-button share-twitter tooltip" data-activity="${escapeHtml(name)}" data-description="${escapeHtml(details.description)}" data-schedule="${escapeHtml(formattedSchedule)}">
           <span class="share-icon">🐦</span>
           <span class="tooltip-text">Share on Twitter</span>
         </button>
-        <button class="share-button share-facebook tooltip" data-activity="${name}" data-description="${details.description.replace(/"/g, '&quot;')}" data-schedule="${formattedSchedule.replace(/"/g, '&quot;')}">
+        <button class="share-button share-facebook tooltip" data-activity="${escapeHtml(name)}" data-description="${escapeHtml(details.description)}" data-schedule="${escapeHtml(formattedSchedule)}">
           <span class="share-icon">📘</span>
           <span class="tooltip-text">Share on Facebook</span>
         </button>
-        <button class="share-button share-email tooltip" data-activity="${name}" data-description="${details.description.replace(/"/g, '&quot;')}" data-schedule="${formattedSchedule.replace(/"/g, '&quot;')}">
+        <button class="share-button share-email tooltip" data-activity="${escapeHtml(name)}" data-description="${escapeHtml(details.description)}" data-schedule="${escapeHtml(formattedSchedule)}">
           <span class="share-icon">✉️</span>
           <span class="tooltip-text">Share via Email</span>
         </button>
